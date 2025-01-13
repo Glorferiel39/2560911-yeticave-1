@@ -5,28 +5,15 @@
  * @param array $data Ассоциативный массив с данными для шаблона
  * @return string Итоговый HTML
  */
-function includeTemplate($name, array $data = []) {
-    $name = 'templates/' . $name;
-    $result = '';
 
-    if (!is_readable($name)) {
-        return $result;
-    }
-
-    ob_start();
-    extract($data);
-    require $name;
-
-    $result = ob_get_clean();
-
-    return $result;
-}
 
 /**
+ *Форматирует время лота
  *@param string $data
- *@return int
+ *@return array
  */
-function remainingTime(string $date) {
+function remainingTime(string $date): array
+{
     $timeDifference = strtotime($date) - time();
     if ($timeDifference<=0){
         return [0,0];
@@ -48,3 +35,5 @@ function formatAmount(int|float $price): string
     $price = number_format($price, 0, '.', ' ');
     return $price . ' ₽';
 }
+
+

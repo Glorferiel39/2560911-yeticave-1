@@ -13,21 +13,12 @@
  *
  * @return bool true при совпадении с форматом 'ГГГГ-ММ-ДД', иначе false
  */
-function isDateValid(string $date) : bool {
+function isDateValid(string $date) : bool
+{
     $formatToCheck = 'Y-m-d';
     $dateTimeObj = date_create_from_format($formatToCheck, $date);
 
     return $dateTimeObj !== false && array_sum(date_get_last_errors()) === 0;
-}
-/**
- * Форматирует cумму лота и добавляет знак рубля
- * @param int|float $price
- * @return string
- */
-function formatAmount(int|float $price): string
-{
-    $price = number_format($price, 0, '.', ' ');
-    return $price . ' ₽';
 }
 
 /**
@@ -39,7 +30,8 @@ function formatAmount(int|float $price): string
  *
  * @return mysqli_stmt Подготовленное выражение
  */
-function dbGetPrepareStmt($link, $sql, $data = []) {
+function dbGetPrepareStmt(mysqli $link, $sql, $data = []):mysqli_stmt
+{
     $stmt = mysqli_prepare($link, $sql);
 
     if ($stmt === false) {
@@ -136,7 +128,8 @@ function getNounPluralForm (int $number, string $one, string $two, string $many)
  * @param array $data Ассоциативный массив с данными для шаблона
  * @return string Итоговый HTML
  */
-function includeTemplate($name, array $data = []) {
+function includeTemplate($name, array $data = [])
+{
     $name = 'templates/' . $name;
     $result = '';
 
@@ -153,15 +146,5 @@ function includeTemplate($name, array $data = []) {
     return $result;
 }
 
-function remainingTime(string $date) {
-    $timeDifference = strtotime($date) - time();
-    if ($timeDifference<=0){
-        return [0,0];
 
-    }
-    $hours = floor($timeDifference / 3600);
-    $minutes = floor(($timeDifference / 3600) % 60);
-
-    return [$hours, $minutes];
-}
 
