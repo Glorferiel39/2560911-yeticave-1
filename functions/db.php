@@ -9,6 +9,7 @@ function dbConnect(array $config):mysqli|bool
     if (!isset($config['db']['host'], $config['db']['user'], $config['db']['password'], $config['db']['database'])) {
     exit;
     }
+
     $dbConfig = $config['db'];
 
     $con = mysqli_connect($dbConfig['host'], $dbConfig['user'], $dbConfig['password'], $dbConfig['database']);
@@ -17,15 +18,19 @@ function dbConnect(array $config):mysqli|bool
     if (!$con) {
         echo "Подключения к базе данных не установлено";
         exit("Connection error: " . mysqli_connect_error());
-    } else {
-        echo "Подключения к базе данных установлено";
     }
 
-mysqli_set_charset($con, "utf8");
-return $con;
-}
-//  Запрос на получение новых лотов
-function getNewLotsFromDb(mysqli $con)
+    mysqli_set_charset($con, "utf8");
+
+    return $con;
+    }
+
+/**
+ * Функция формирующая запрос на получение массива самых новых актуальных лотов из базы данных
+ * @param mysqli $con
+ * @return array
+ */
+function getNewLotsFromDb(mysqli $con):array
 {
     $sql = "SELECT l.id, l.title, l.start_price, l.image_url, c.name AS category_name, r.amount AS current_price, l.created_at
 FROM lots l
@@ -41,13 +46,18 @@ LIMIT 3;";
     if (!$result) {
         $error = mysqli_error($con);
         print("SQL Error: $error");
+        exit();
     }
 
     return mysqli_fetch_all($result, MYSQLI_ASSOC);
 }
 
-//  Запрос на получения всех категорий
-function getAllCategoriesFromDb(mysqli $con)
+/**
+ * Функция формирующая запрос на получение массива всех категорий из базы данных
+ * @param mysqli $con
+ * @return array
+ */
+function getAllCategoriesFromDb(mysqli $con):array
 {
     $sql = "SELECT * FROM categories;";
     $result = mysqli_query($con, $sql);
@@ -55,7 +65,64 @@ function getAllCategoriesFromDb(mysqli $con)
     if (!$result) {
         $error = mysqli_error($con);
         print("SQL Error: $error");
+        exit();
     }
 
     return mysqli_fetch_all($result, MYSQLI_ASSOC);
+}
+
+/**
+ * Создает подготовленное выражение на основе готового SQL запроса и переданных данных
+ *
+ * @param $link mysqli Ресурс соединения
+ * @param $sql string SQL запрос с плейсхолдерами вместо значений
+ * @param array $data Данные для вставки на место плейсхолдеров
+ *
+ * @return mysqli_stmt Подготовленное выражение
+ */
+
+function dbGetPrepareStmt(mysqli $link, $sql, $data = []) : mysqli_stmt
+{
+    $stmt = mysqli_prepare($link, $sql);
+
+    if ($stmt === false) {
+        $errorMsg = 'Не удалось инициализировать подготовленное выражение: ' . mysqli_error($link);
+        die($errorMsg);
+    }
+
+    if ($data) {
+        $types = '';
+        $stmtData = [];
+
+        foreach ($data as $value) {
+            $type = 's';
+
+            if (is_int($value)) {
+                $type = 'i';
+            }
+            else if (is_string($value)) {
+                $type = 's';
+            }
+            else if (is_double($value)) {
+                $type = 'd';
+            }
+
+            if ($type) {
+                $types .= $type;
+                $stmtData[] = $value;
+            }
+        }
+
+        $values = array_merge([$stmt, $types], $stmtData);
+
+        $func = 'mysqli_stmt_bind_param';
+        $func(...$values);
+
+        if (mysqli_errno($link) > 0) {
+            $errorMsg = 'Не удалось связать подготовленное выражение с параметрами: ' . mysqli_error($link);
+            die($errorMsg);
+        }
+    }
+
+    return $stmt;
 }

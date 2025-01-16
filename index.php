@@ -1,8 +1,7 @@
 <?php
 require_once ('templates/data.php');
-require_once ('functions/functions.php');
 require_once ('functions/db.php');
-require_once ('helpers.php');
+require_once ('functions/template.php');
 require_once ('init.php');
 
 $config = require 'configdb.php';
