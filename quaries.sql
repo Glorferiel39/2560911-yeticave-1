@@ -28,14 +28,14 @@ INSERT INTO rates (amount, user_id, lot_id) VALUES (3000, 2, 6);
 SELECT * FROM categories;
 
 /*Запрос на получение самых новых, открытых лотов. Каждый лот должен включать название, стартовую цену, ссылку на изображение, цену, название категории*/
-SELECT l.id, l.title, l.start_price, l.image_url, c.name AS category_name, r.amount AS current_price, l.created_at
+SELECT l.id, l.title, l.start_price, l.image_url, c.name AS category_name,
+       COALESCE(MAX(r.amount), l.start_price) AS current_price
 FROM lots l
        JOIN categories c ON c.id = l.category_id
        LEFT JOIN rates r ON r.lot_id = l.id
-       WHERE l.ended_at > NOW()
-GROUP BY l.id, l.title, l.start_price, l.image_url, c.name, current_price
-ORDER BY l.created_at DESC
-LIMIT 3;
+WHERE l.ended_at > NOW()
+GROUP BY l.id, l.title, l.start_price, l.image_url, c.name
+ORDER BY l.created_at DESC;
 
 /*Запрос на показ лота по его ID. Получите также название категории, к которой принадлежит лот*/
 SELECT l.id, c.name
